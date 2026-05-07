@@ -413,6 +413,6 @@ market-intelligence-pipeline/
 | 🟡 Medium | Scheduler integration (APScheduler / Airflow DAG) for continuous runs |
 | 🟡 Medium | Gold-layer BI dashboard (Streamlit / Evidence.dev) |
 | 🟢 Low | Vector embeddings + similarity search for trend clustering |
-| 🟢 Low | Alert system: email/Slack notification when `action_required = TRUE` |
+| 🟢 Low | Alert system: email notification when `action_required = TRUE` |
 | 🟢 Low | Multi-LLM support (Google Gemini, OpenAI GPT-4o) |
 
