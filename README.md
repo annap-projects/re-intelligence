@@ -367,7 +367,7 @@ con.execute("""
 
 ---
 
-## Configuration Reference
+## Configuration reference
 
 | Variable | Default | Description |
 |---|---|---|
