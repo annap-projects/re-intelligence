@@ -8,7 +8,7 @@
 
 1. [Overview](#overview)
 2. [System Architecture](#system-architecture)
-3. [The Connector Pattern - Plug-and-Play Ingestion](#the-connector-pattern--plug-and-play-ingestion)
+3. [Plug-and-Play Ingestion](#the-connector-pattern--plug-and-play-ingestion)
 4. [The Medallion Data Lake](#the-medallion-data-lake)
 5. [The LLM Extraction Engine - Signal vs. Noise](#the-llm-extraction-engine--signal-vs-noise)
 6. [Signal Categories](#signal-categories)
