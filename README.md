@@ -38,7 +38,7 @@ This pipeline solves that problem end-to-end:
 
 ---
 
-## System Architecture
+## System architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
@@ -94,7 +94,7 @@ This pipeline solves that problem end-to-end:
 
 ---
 
-## The Connector Pattern: Plug-and-Play Ingestion
+## Plug-and-play ingestion
 
 All data sources implement the `DataConnector` abstract base class:
 
@@ -119,7 +119,7 @@ class RawArticle:
     raw_metadata: Dict[str, Any]
 ```
 
-### Adding a New Enterprise Connector (e.g. Factiva)
+### Adding a new enterprise connector (e.g. Factiva)
 
 ```python
 # connectors.py - add to CONNECTOR_REGISTRY
@@ -169,7 +169,7 @@ CREATE TABLE bronze_raw_articles (
 
 **Design Principle:** Bronze is append-only. Raw data is **never modified or deleted**. This guarantees full auditability and enables re-processing with future, better models.
 
-### Silver Layer - Structured intelligence signals
+### Silver Layer - structured intelligence signals
 
 ```sql
 CREATE TABLE silver_intelligence_signals (
@@ -186,7 +186,7 @@ CREATE TABLE silver_intelligence_signals (
 );
 ```
 
-### Gold Layer - Aggregated KPIs
+### Gold Layer - aggregated KPIs
 
 ```sql
 CREATE VIEW gold_signal_summary AS
@@ -251,7 +251,7 @@ $$\Delta t = T_{\text{manual}} - T_{\text{pipeline}} \approx T_{\text{manual}} \
 
 ---
 
-## Signal Categories
+## Signal categories
 
 | Category | Description | Example Triggers |
 |---|---|---|
