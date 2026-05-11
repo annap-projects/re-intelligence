@@ -8,7 +8,7 @@
 
 1. [Overview](#overview)
 2. [System Architecture](#system-architecture)
-3. [Plug-and-Play Ingestion](#the-connector-pattern--plug-and-play-ingestion)
+3. [The Connector Pattern - Plug-and-Play Ingestion](#the-connector-pattern--plug-and-play-ingestion)
 4. [The Medallion Data Lake](#the-medallion-data-lake)
 5. [The LLM Extraction Engine - Signal vs. Noise](#the-llm-extraction-engine--signal-vs-noise)
 6. [Signal Categories](#signal-categories)
@@ -33,12 +33,25 @@ This pipeline solves that problem end-to-end:
 | Manual analysis bottleneck | **LLM Extraction Engine** - Claude claude-sonnet-4-5 classifies and summarises at machine speed |
 | Unstructured LLM outputs | **Pydantic schema enforcement** - every signal is validated before storage |
 | Lack of institutional memory | **DuckDB Medallion Lake** - queryable, durable, append-only intelligence store |
+| Scattered reporting across email & spreadsheets | **Dual-output BI layer** - automated Excel reports + interactive Power BI-style dashboard |
 
-**Result:** Time-to-insight decreases from hours to seconds, and only validated, categorised information reaches the team.
+**Result:** Time-to-insight decreases from hours to seconds. Validated, categorised intelligence is delivered via two channels: an **Excel workbook** for quick executive briefings, and an **interactive HTML dashboard** with 5 analytical views for deep-dive analysis.
+
+### Power BI Dashboard — 5 Analytical Views
+
+| Page | Visualization | Purpose |
+|---|---|---|
+| **Competitor Overview** | Stacked column chart (entity × category) | Who is making noise, and what kind? |
+| **Emerging Risks** | Heat map (risk topic × time period) | Which risks are intensifying week-over-week? |
+| **Broker Dynamics** | Bubble chart (sentiment × volume × action weight) | Which brokers are active, and is the tone bullish or bearish? |
+| **Sentiment Analysis** | Stacked bar + trend line (per category over time) | How is market sentiment evolving across all three verticals? |
+| **News Timeline** | Filtered tables (Month / Week / Today) | What happened recently that needs attention? |
+
+The dashboard also exports **Parquet star-schema files** (`fact_signals` + `dim_entities`) that can be imported directly into **Power BI Desktop** for native `.pbix` dashboards.
 
 ---
 
-## System architecture
+## System Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
@@ -88,13 +101,34 @@ This pipeline solves that problem end-to-end:
   │  Step 1: Ingest  → RawArticle[]                                   │
   │  Step 2: Bronze  → bulk_insert_bronze_records()                   │
   │  Step 3: Silver  → extract_batch() + insert_silver_signal()       │
-  │  Step 4: Report  → Gold-layer summary (Rich console table)        │
+  │  Step 4: Export  → .xlsx report (Dashboard + Feed)                │
+  │  Step 5: PBI     → HTML dashboard + Parquet star schema           │
+  │  Step 6: Report  → Gold-layer summary (Rich console table)        │
+  └────────────────────────────────────────────────────────────────────┘
+                     │
+                     ▼
+  ┌────────────────────────────────────────────────────────────────────┐
+  │  EXPORT LAYER  (exporter.py + pbi_exporter.py)                     │
+  │                                                                    │
+  │  exporter.py → export_intelligence_report()                        │
+  │    Sheet 1: "Executive Dashboard" ← Gold aggregate + KPI cards     │
+  │    Sheet 2: "Intelligence Feed"   ← Silver detail + clickable URLs │
+  │    → output/intelligence_report_<timestamp>.xlsx                   │
+  │                                                                    │
+  │  pbi_exporter.py → export_powerbi_report()                         │
+  │    Page 1: Competitor Overview  ← Stacked column chart             │
+  │    Page 2: Emerging Risks       ← Risk heat map                   │
+  │    Page 3: Broker Dynamics      ← Bubble chart                    │
+  │    Page 4: Sentiment Analysis   ← Stacked bar + trend lines       │
+  │    Page 5: News Timeline        ← Month / Week / Day tables       │
+  │    → output/dashboard_<timestamp>.html                             │
+  │    → output/powerbi/data/*.parquet  (Power BI Desktop import)      │
   └────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Plug-and-play ingestion
+## The Connector Pattern: Plug-and-Play Ingestion
 
 All data sources implement the `DataConnector` abstract base class:
 
@@ -119,7 +153,7 @@ class RawArticle:
     raw_metadata: Dict[str, Any]
 ```
 
-### Adding a new enterprise connector (e.g. Factiva)
+### Adding a New Enterprise Connector (e.g. Factiva)
 
 ```python
 # connectors.py - add to CONNECTOR_REGISTRY
@@ -169,7 +203,7 @@ CREATE TABLE bronze_raw_articles (
 
 **Design Principle:** Bronze is append-only. Raw data is **never modified or deleted**. This guarantees full auditability and enables re-processing with future, better models.
 
-### Silver Layer - structured intelligence signals
+### Silver Layer - Structured intelligence signals
 
 ```sql
 CREATE TABLE silver_intelligence_signals (
@@ -186,7 +220,7 @@ CREATE TABLE silver_intelligence_signals (
 );
 ```
 
-### Gold Layer - aggregated KPIs
+### Gold Layer - Aggregated KPIs
 
 ```sql
 CREATE VIEW gold_signal_summary AS
@@ -251,7 +285,7 @@ $$\Delta t = T_{\text{manual}} - T_{\text{pipeline}} \approx T_{\text{manual}} \
 
 ---
 
-## Signal categories
+## Signal Categories
 
 | Category | Description | Example Triggers |
 |---|---|---|
@@ -323,7 +357,7 @@ cp .env.example .env
 ### Run the Pipeline
 
 ```bash
-# Full pipeline (RSS → Bronze → Silver via LLM)
+# Full pipeline (RSS → Bronze → Silver → Excel report)
 python pipeline.py
 
 # Dry-run: ingest to Bronze only, no LLM processing
@@ -334,7 +368,24 @@ python pipeline.py --query "cat bond"
 
 # Use LexisNexis connector (after configuring credentials)
 python pipeline.py --connector lexisnexis --query "reinsurance"
+
+# Skip Excel report generation
+python pipeline.py --no-export
 ```
+
+### Excel Report Output
+
+After each pipeline run, a formatted `.xlsx` file is generated at `output/intelligence_report_<timestamp>.xlsx` with two sheets:
+
+| Sheet | Content | Purpose |
+|---|---|---|
+| **Executive Dashboard** | Signal counts by category, action-required tallies, avg confidence | 5-second weekly overview for leadership |
+| **Intelligence Feed** | Date, Category, Title, Summary, Sentiment, clickable Source URL | Analyst's daily working tool |
+
+- **Action-required items** appear at the top of the Intelligence Feed, highlighted in red
+- **Clickable hyperlinks** to original source articles
+- **Sentiment colour-coding**: green (positive), red (negative), amber (mixed)
+- **Professional formatting**: branded headers, alternating row colours, auto-sized columns
 
 ### Query the Data Lake
 
@@ -367,7 +418,7 @@ con.execute("""
 
 ---
 
-## Configuration reference
+## Configuration Reference
 
 | Variable | Default | Description |
 |---|---|---|
@@ -392,12 +443,21 @@ market-intelligence-pipeline/
 ├── database.py         # DuckDB Medallion Lake: DDL, read/write helpers
 ├── connectors.py       # DataConnector ABC, RSSConnector, LexisNexisConnector stub
 ├── processor.py        # LLM extraction engine: Pydantic schema + Anthropic Claude
-├── pipeline.py         # Orchestrator: ingest → Bronze → Silver → Gold report
+├── exporter.py         # Excel report generator: Dashboard + Feed sheets
+├── pbi_exporter.py     # Power BI dashboard: Plotly HTML + Parquet star schema
+├── pipeline.py         # Orchestrator: ingest → Bronze → Silver → Export → PBI → Report
+├── generate_sample_report.py  # Seed DB with real sample data + generate demo reports
 ├── requirements.txt    # Python dependencies
 ├── .env.example        # Environment variable template (commit this)
 ├── .env                # Actual secrets (NEVER commit - gitignored)
 ├── data/               # DuckDB file created here on first run
 │   └── market_intelligence.duckdb
+├── output/             # Generated reports & dashboards (auto-created)
+│   ├── intelligence_report_<timestamp>.xlsx
+│   ├── dashboard_<timestamp>.html
+│   └── powerbi/data/   # Parquet files for Power BI Desktop
+│       ├── fact_signals.parquet
+│       └── dim_entities.parquet
 └── README.md
 ```
 
@@ -411,8 +471,9 @@ market-intelligence-pipeline/
 | 🔴 High | Add `FactivaConnector` for Dow Jones Newswires |
 | 🟡 Medium | Async pipeline (`asyncio` + `httpx`) for parallel feed ingestion |
 | 🟡 Medium | Scheduler integration (APScheduler / Airflow DAG) for continuous runs |
-| 🟡 Medium | Gold-layer BI dashboard (Streamlit / Evidence.dev) |
+| ✅ Done | Excel report export (Executive Dashboard + Intelligence Feed) |
+| ✅ Done | Power BI dashboard (Plotly HTML + Parquet star schema for PBI Desktop) |
 | 🟢 Low | Vector embeddings + similarity search for trend clustering |
-| 🟢 Low | Alert system: email notification when `action_required = TRUE` |
+| 🟢 Low | Alert system: email/Slack notification when `action_required = TRUE` |
 | 🟢 Low | Multi-LLM support (Google Gemini, OpenAI GPT-4o) |
 
