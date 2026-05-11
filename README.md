@@ -474,6 +474,6 @@ market-intelligence-pipeline/
 | ✅ Done | Excel report export (Executive Dashboard + Intelligence Feed) |
 | ✅ Done | Power BI dashboard (Plotly HTML + Parquet star schema for PBI Desktop) |
 | 🟢 Low | Vector embeddings + similarity search for trend clustering |
-| 🟢 Low | Alert system: email/Slack notification when `action_required = TRUE` |
-| 🟢 Low | Multi-LLM support (Google Gemini, OpenAI GPT-4o) |
+| 🟢 Low | Alert system: email notification when `action_required = TRUE` |
+| 🟢 Low | Multi-LLM support (Google Gemini, Claude) |
 
