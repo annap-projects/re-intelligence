@@ -37,7 +37,7 @@ This pipeline solves that problem end-to-end:
 
 **Result:** Time-to-insight decreases from hours to seconds. Validated, categorised intelligence is delivered via two channels: an **Excel workbook** for quick executive briefings, and an **interactive PBI dashboard** with 5 analytical views for deep-dive analysis.
 
-### Power BI Dashboard — 5 Analytical Views
+### Power BI dashboard — 5 analytical views
 
 | Page | Visualization | Purpose |
 |---|---|---|
@@ -51,7 +51,7 @@ The dashboard also exports **Parquet star-schema files** (`fact_signals` + `dim_
 
 ---
 
-## System Architecture
+## System architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
@@ -128,7 +128,7 @@ The dashboard also exports **Parquet star-schema files** (`fact_signals` + `dim_
 
 ---
 
-## The Connector Pattern: Plug-and-Play Ingestion
+## Plug-and-Play ingestion
 
 All data sources implement the `DataConnector` abstract base class:
 
@@ -153,7 +153,7 @@ class RawArticle:
     raw_metadata: Dict[str, Any]
 ```
 
-### Adding a New Enterprise Connector (e.g. Factiva)
+### Adding a new enterprise connector (e.g. Factiva)
 
 ```python
 # connectors.py - add to CONNECTOR_REGISTRY
@@ -203,7 +203,7 @@ CREATE TABLE bronze_raw_articles (
 
 **Design Principle:** Bronze is append-only. Raw data is **never modified or deleted**. This guarantees full auditability and enables re-processing with future, better models.
 
-### Silver Layer - Structured intelligence signals
+### Silver Layer - structured intelligence signals
 
 ```sql
 CREATE TABLE silver_intelligence_signals (
@@ -220,7 +220,7 @@ CREATE TABLE silver_intelligence_signals (
 );
 ```
 
-### Gold Layer - Aggregated KPIs
+### Gold Layer - aggregated KPIs
 
 ```sql
 CREATE VIEW gold_signal_summary AS
@@ -285,7 +285,7 @@ $$\Delta t = T_{\text{manual}} - T_{\text{pipeline}} \approx T_{\text{manual}} \
 
 ---
 
-## Signal Categories
+## Signal categories
 
 | Category | Description | Example Triggers |
 |---|---|---|
@@ -373,7 +373,7 @@ python pipeline.py --connector lexisnexis --query "reinsurance"
 python pipeline.py --no-export
 ```
 
-### Excel Report Output
+### Excel report output
 
 After each pipeline run, a formatted `.xlsx` file is generated at `output/intelligence_report_<timestamp>.xlsx` with two sheets:
 
@@ -418,7 +418,7 @@ con.execute("""
 
 ---
 
-## Configuration Reference
+## Configuration reference
 
 | Variable | Default | Description |
 |---|---|---|
@@ -435,7 +435,7 @@ con.execute("""
 
 ---
 
-## Project Structure
+## Project structure
 
 ```
 market-intelligence-pipeline/
