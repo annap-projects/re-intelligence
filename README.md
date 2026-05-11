@@ -33,9 +33,9 @@ This pipeline solves that problem end-to-end:
 | Manual analysis bottleneck | **LLM Extraction Engine** - Claude claude-sonnet-4-5 classifies and summarises at machine speed |
 | Unstructured LLM outputs | **Pydantic schema enforcement** - every signal is validated before storage |
 | Lack of institutional memory | **DuckDB Medallion Lake** - queryable, durable, append-only intelligence store |
-| Scattered reporting across email & spreadsheets | **Dual-output BI layer** - automated Excel reports + interactive Power BI-style dashboard |
+| Scattered reporting across email & spreadsheets | **Dual-output BI layer** - automated Excel reports + interactive Power BI dashboard |
 
-**Result:** Time-to-insight decreases from hours to seconds. Validated, categorised intelligence is delivered via two channels: an **Excel workbook** for quick executive briefings, and an **interactive HTML dashboard** with 5 analytical views for deep-dive analysis.
+**Result:** Time-to-insight decreases from hours to seconds. Validated, categorised intelligence is delivered via two channels: an **Excel workbook** for quick executive briefings, and an **interactive PBI dashboard** with 5 analytical views for deep-dive analysis.
 
 ### Power BI Dashboard — 5 Analytical Views
 
